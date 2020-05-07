@@ -111,7 +111,7 @@ function filterData() {
     } catch (e) {
 
         console.log(`Exception: ${e}`);
-        d3.select('div.modal-body>p').text(`Please enter date between ${toIsoDate(minDate)} and ${toIsoDate(maxDate)}`);
+        $('div.modal-body>p').html(`Please enter date between ${toIsoDate(minDate)} and ${toIsoDate(maxDate)}`);
         $('#validationFailed').modal();
         initPage();
         
