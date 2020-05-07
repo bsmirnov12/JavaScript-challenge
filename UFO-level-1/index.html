@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <link rel="stylesheet" href="../css/bootstrap.min.css">
+        <style>
+            .jumbotron {
+                background-image: url("../images/x-com.jfif");
+                background-attachment: fixed;
+                background-position: top center;
+                background-size: cover
+            }
+        </style>
+        
+        <title>UFO Sightings</title>
+    </head>
+
+    <body>
+
+        <!-- ************* Header ************* -->
+    
+        <div class="jumbotron jumbotron-fluid text-center">
+            <div class="container">
+                <h1 class="display-3 text-warning">UFO Sightings</h1>
+            </div>
+        </div>
+
+        <!-- ************* Main content ************* -->
+
+        <div class="container mb-4">
+            <div class="row">
+                <!-- Filter form -->
+                <div class="col-4 col-lg-2 mb-4">
+                    <form>
+                        <h5 class="text-warning">Filter Search</h5>
+                        <div class="form-group">
+                            <label for="dateInput">Enter a date</label>
+                            <input type="date" class="form-control pl-1" id="dateInput">
+                        </div>
+                        <button type="reset" class="btn btn-outline-success m-1 p-2">Clear</button>
+                        <button type="submit" class="btn btn-outline-warning p-2">Submit</button>
+                    </form>
+                </div>
+
+                <!-- Table -->
+                <div id="table-space" class="col-12 col-lg-10">
+                </div>
+            </div>
+        </div>
+
+        <!-- ***** Footer ***** -->
+
+        <footer class="page-footer fixed-bottom px-3 py-1 mb-0">
+        <div class="row">
+            <div class="col-auto mr-auto">
+                <small>UT-TOR-DATA-PT-01-2020-U-C Week 14 Homework</small>
+            </div>
+            <div class="col-auto">
+                <small>© Boris Smirnov</small>
+            </div>
+        </div>
+        </footer>
+
+        <!-- ****** Validation failed ****** -->
+
+        <div class="modal fade" id="validationFailed" tabindex="-1" role="dialog" aria-labelledby="validationFailedLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title text-warning" id="validationFailedLabel">Invalid date</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body text-warning">
+                        <p></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="../js/d3.min.js"></script>
+        <script src="../js/jquery-3.4.1.min.js"></script>
+        <script src="../js/bootstrap.bundle.min.js"></script>
+        <script src="../js/data.js"></script>
+        <script src="js/custom.js"></script>
+
+    </body>
+</html>
