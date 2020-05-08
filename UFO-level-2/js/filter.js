@@ -2,14 +2,16 @@
 // UT-TOR-DATA-PT-01-2020-U-C Week 14 Homework
 // (c) Boris Smirnov
 
-// Class for handling filters
-// Class uses global variable 'data' (from data.js)
+// This script uses global variables 'data' (from data.js) and 'metaData' (from custom.js)
 
+// Class implements filtering
+// Its static members keep registry of filters and apply all filters to data after a filter changes its state
+// Each filter instance is responsible for one table column, handles change/clear events, provides choice options.
 class SelectFilter {
     // Registry of filter objects
     static filterRegistry = [];
 
-    // Construct a filter for given column
+    // Construct a filter for a given column
     // Input: column name (it is used as a suffix in <select> and <button> ids), corresponding field in data entries
     constructor(idSuffix, dataKey) {
         // register this instance
@@ -58,7 +60,7 @@ class SelectFilter {
 
     // Applies all filters to a data item (an encounter). Returns true if the item passes all the filters.
     // Suitable for invocation in Array.filter()
-    // In adition, it passes filtered encounters to each filter, so they could build updated lists of options
+    // In adition, it passes filtered encounters to each filter, so it could updated its lists of options
     static filter(encounter, only_obj) {
         // Main loop - filtering
         // It proceeds to the end only if all filters let the encounter pass
@@ -68,7 +70,7 @@ class SelectFilter {
         };
 
         // Additional loop for encounters that passed the filters
-        // They are used to update option lists, so, that they contain only values that are in the dataset
+        // They are used to update option lists, so that they contain only values that are in the dataset
         if (i == SelectFilter.filterRegistry.length) { // encounter passed all the filters
             // now, this is special case
             if (only_obj === undefined) // populate options for all filters. Active filters will have only one (selected) option
@@ -87,24 +89,25 @@ class SelectFilter {
         // Reset option lists of each filter
         SelectFilter.filterRegistry.forEach(obj => obj.options = ['']);
 
-        // This is how table body is created. D3 does all the job
         // This is the main part
+
+        // This is how table body is created. D3 does its magic.
         var tableBody = d3.select('tbody');
         tableBody.selectAll('tr')
             .data(data.filter(encounter => SelectFilter.filter(encounter)))
             .join('tr')
             .selectAll('td')
             .data(encounter => Object.values(encounter))
-            .join('td') // change regular hyphen to non-breaking for the dates to remain in one line
-                .text(value => /^\d{4}-\d{2}-\d{2}$/.test(value) ? value.replace(/-/g, '‑') : value);
+            .join('td')
+                .text(value => value);
 
 
         // This is the secondary part: update options in filters based of the new (filtered) dataset
 
         // First: update option lists for unset filters
         // (their options were already populated via SelectFilter.filter() calls above)
+        // Populating active filters requires different approach (see below)
         SelectFilter.filterRegistry.forEach(obj => {
-            // Populating active filters requires different approach (see below)
             if (!obj.selectedOpt) { // the filter is unset
                 // sort options
                 obj.options.sort();
@@ -119,19 +122,19 @@ class SelectFilter {
             }
         });
 
-        // Second: update option lists for set filters (now they have only one option in the list - selected)
+        // Second: update option lists for set filters (at this moment they have only one option in the list - selected)
         // For each set filter we have to recreate a dataset WITHOUT that filter,
-        // and then make a list of possible options for this particular field
+        // and then make a list of possible options for its filter field
         var activeFilters = [];
         SelectFilter.filterRegistry.forEach(obj => obj.selectedOpt ? activeFilters.push(obj) : null);
 
         activeFilters.forEach(obj => {
             // temporary remove the filter from the registry
-            var idx = SelectFilter.filterRegistry.indexOf(obj);
+            let idx = SelectFilter.filterRegistry.indexOf(obj);
             SelectFilter.filterRegistry.splice(idx, 1);
 
             // Now apply remaining filters to the dataset, but only for the purpose of populating options of the removed filter
-            // calling SelectFilter.filter() with obj as the second argument- special case, obj will be populated
+            // calling SelectFilter.filter() with obj as the second argument- special case, only obj will be populated
             data.forEach(encounter => SelectFilter.filter(encounter, obj));
 
             // At this point the filter options should be repopulated and needed to be transferred to the 'option' elements
@@ -192,11 +195,10 @@ class SelectFilter {
 }
 
 // Create filters
-var dateFilter = new SelectFilter('Date', 'datetime');
-var dateCity = new SelectFilter('City', 'city');
-var dateState = new SelectFilter('State', 'state');
-var dateCountry = new SelectFilter('Country', 'country');
-var dateShape = new SelectFilter('Shape', 'shape');
+metaData.forEach(field => {
+    if (field.filtered)
+        new SelectFilter(field.column, field.key);
+});
 
 // Render the table for the first time with all filters cleared
 SelectFilter.renderTableBody();
