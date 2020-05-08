@@ -63,8 +63,8 @@ function initPage() {
         .join('tr')
         .selectAll('td')
         .data(encounter => Object.values(encounter))
-        .join('td')
-            .text(contents => contents);
+        .join('td') // change regular hyphen to non-breaking for the dates to remain in one line
+            .text(contents => /^\d{4}-\d{2}-\d{2}$/.test(contents) ? contents.replace(/-/g, '‑') : contents);
 
 }
 // Handles reset events from the filter form
@@ -105,8 +105,8 @@ function filterData() {
             .join('tr')
             .selectAll('td')
             .data(encounter => Object.values(encounter))
-            .join('td')
-                .text(contents => contents);
+            .join('td') // change regular hyphen to non-breaking for the dates to remain in one line
+                .text(contents => /^\d{4}-\d{2}-\d{2}$/.test(contents) ? contents.replace(/-/g, '‑') : contents);
 
     } catch (e) {
 

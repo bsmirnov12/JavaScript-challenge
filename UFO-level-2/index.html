@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <link rel="stylesheet" href="../css/bootstrap.min.css">
+        <style>
+            .jumbotron {
+                background-image: url("../images/x-com.jfif");
+                background-attachment: fixed;
+                background-position: top center;
+                background-size: cover
+            }
+        </style>
+        
+        <title>UFO Sightings</title>
+    </head>
+
+    <body>
+
+        <!-- ************* Header ************* -->
+    
+        <div class="jumbotron jumbotron-fluid text-center">
+            <div class="container">
+                <h1 class="display-3 text-warning">UFO Sightings</h1>
+            </div>
+        </div>
+
+        <!-- ************* Main content ************* -->
+
+        <div class="container mb-4">
+
+            <!-- Filter form -->
+            <form>
+                <div class="form-row text-warning">
+                    <!-- Date -->
+                    <div class="form-group col">
+                        <label for="selectDate">Date</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <button class="btn btn-outline-warning" type="button" id="cancelDate" disabled>
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <select id="selectDate" class="form-control" key-name="datetime">
+                                <option>Choose...Choose</option>
+                                <option>...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- City -->
+                    <div class="form-group col">
+                        <label for="selectCity">City</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <button class="btn btn-outline-warning" type="button" id="cancelCity" disabled>
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <select id="selectCity" class="form-control" key-name="city">
+                                <option>Choose...Choose</option>
+                                <option>...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- State -->
+                    <div class="form-group col">
+                        <label for="selectState">State</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <button class="btn btn-outline-warning" type="button" id="cancelState" disabled>
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <select id="selectState" class="form-control" key-name="state">
+                                <option>Choose...Choose</option>
+                                <option>...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Country -->
+                    <div class="form-group col">
+                        <label for="selectCountry">Country</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <button class="btn btn-outline-warning" type="button" id="cancelCountry" disabled>
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <select id="selectCountry" class="form-control" key-name="country">
+                                <option>Choose...Choose</option>
+                                <option>...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Shape -->
+                    <div class="form-group col">
+                        <label for="selectShape">Shape</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <button class="btn btn-outline-warning" type="button" id="cancelShape" disabled>
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <select id="selectShape" class="form-control" key-name="shape">
+                                <option>Choose...Choose</option>
+                                <option>...</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Table -->
+            <div class="row">
+                <div id="table-space" class="col">
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ***** Footer ***** -->
+
+        <footer class="page-footer fixed-bottom px-3 py-1 mb-0">
+        <div class="row">
+            <div class="col-auto mr-auto">
+                <small>UT-TOR-DATA-PT-01-2020-U-C Week 14 Homework</small>
+            </div>
+            <div class="col-auto">
+                <small>© Boris Smirnov</small>
+            </div>
+        </div>
+        </footer>
+
+        <script src="../js/d3.min.js"></script>
+        <script src="../js/jquery-3.4.1.min.js"></script>
+        <script src="../js/bootstrap.bundle.min.js"></script>
+        <script src="../js/data.js"></script>
+        <script src="js/custom.js"></script>
+        <script src="js/filter.js"></script>
+
+    </body>
+</html>
