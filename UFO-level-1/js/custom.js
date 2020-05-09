@@ -18,6 +18,20 @@ function toIsoDate(d) {
 data.forEach( encounter => {
     var d = new Date(encounter.datetime);
     encounter.datetime = toIsoDate(d);
+
+    encounter.city = encounter.city.replace(' ', String.fromCharCode(0xA0)); // &nbsp;
+
+    const entityMap = [
+        { regex: /&#33/g,   subst: String.fromCharCode(33) },
+        { regex: /&#39/g,   subst: String.fromCharCode(39) },
+        { regex: /&#44/g,   subst: String.fromCharCode(44) },
+        { regex: /&amp;/g,  subst: '&'},
+        { regex: /&quot;/g, subst: '"'}
+    ];
+    
+    let s = encounter.comments;
+    entityMap.forEach(map => s = s.replace(map.regex, map.subst));
+    encounter.comments = s;
 });
 
 var minDate = new Date(data[0].datetime);
@@ -51,10 +65,10 @@ function createTable() {
 function initPage() {
 
     // Initialize the filter
-    d3.select('input[type="date"]')
-        .attr('min', toIsoDate(minDate))
-        .attr('max', toIsoDate(maxDate))
-        .attr('value', toIsoDate(minDate));
+    var dateControl = document.querySelector('input[type="date"]');
+    dateControl.min =  toIsoDate(minDate);
+    dateControl.max =  toIsoDate(maxDate);
+    dateControl.value = toIsoDate(minDate);   
 
     // Create the table
     var tableBody = d3.select('tbody');
@@ -64,9 +78,10 @@ function initPage() {
         .selectAll('td')
         .data(encounter => Object.values(encounter))
         .join('td') // change regular hyphen to non-breaking for the dates to remain in one line
-            .text(contents => /^\d{4}-\d{2}-\d{2}$/.test(contents) ? contents.replace(/-/g, '‑') : contents);
+            .text(contents => /^\d{4}-\d{2}-\d{2}$/.test(contents) ? contents.replace(/-/g, String.fromCharCode(0x2011)) : contents);
 
 }
+
 // Handles reset events from the filter form
 function resetFilter() {
     // Prevent the page from refreshing (why?)
@@ -95,29 +110,26 @@ function filterData() {
         // In the worst case scenario, if I couldn't recognize invalid date, the table would be empty
         /// but this is easily fixed with one click on [Clear] button
 
-        // Filter dataset
-        filteredData = data.filter( encounter => encounter.datetime == toIsoDate(d) );
-
         // Rebuild table
+        var filterValue = toIsoDate(d);
         var tableBody = d3.select('tbody');
         tableBody.selectAll('tr')
-            .data(filteredData)
+            .data(data.filter( encounter => encounter.datetime == filterValue ))
             .join('tr')
             .selectAll('td')
             .data(encounter => Object.values(encounter))
             .join('td') // change regular hyphen to non-breaking for the dates to remain in one line
-                .text(contents => /^\d{4}-\d{2}-\d{2}$/.test(contents) ? contents.replace(/-/g, '‑') : contents);
+                .text(contents => /^\d{4}-\d{2}-\d{2}$/.test(contents) ? contents.replace(/-/g, String.fromCharCode(0x2011)) : contents);
 
     } catch (e) {
 
         console.log(`Exception: ${e}`);
         $('div.modal-body>p').html(`Please enter date between ${toIsoDate(minDate)} and ${toIsoDate(maxDate)}`);
         $('#validationFailed').modal();
-        initPage();
+        // initPage(); - called when the modal box is closed 
         
     }
 }
-
 
 // Initialize the page
 createTable();
@@ -127,5 +139,8 @@ initPage();
 d3.select('form').on('reset', resetFilter);
 d3.select('button[type="reset"]').on('click', resetFilter);
 
-d3.select('form').on('submit', filterData);
+//d3.select('#dateInput').on('change', filterData) // too interactive, triggers invalid input too often
+d3.select('#dateInput').on('submit', filterData)
 d3.select('button[type="submit"]').on('click', filterData);
+
+$('.modal').on('hidden.bs.modal', initPage); // It's Bootstrap specific and doesn't work with D3
