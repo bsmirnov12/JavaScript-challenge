@@ -23,27 +23,11 @@ class SelectFilter {
         this.clearNode = d3.select(this.clearId);
         this.dataKey = dataKey; // key name in data entries
         this.options = ['']; // list of options in a select control. First option is empty signifying unselected filter.
-        this.selectedOpt = ''; // index of selected option
+        this.selectedOpt = ''; // selected option - empty, clear filter
 
-        // populate options list
-        data.forEach(encounter => {
-            let item = encounter[dataKey];
-            if (!this.options.includes(item))
-                this.options.push(item);
-        });
-        this.options.sort();
-
-        // create options list in DOM tree (D3 magic)
-        this.selectNode.selectAll('option')
-            .data(this.options)
-            .join('option')
-                .text(option => option)
-                .attr('value', option => option);
-        
         // Add event handlers 
         this.selectNode.on('change', this.onChange.bind(this));
         this.clearNode.on('click', this.onClear.bind(this));
-
     }
 
     // Filters single data item (an encounter). Suitable for using in Array.filter()
@@ -51,16 +35,30 @@ class SelectFilter {
         return this.selectedOpt ? encounter[this.dataKey] == this.selectedOpt : true;
     }
 
-    // Given already filtered encounter, look at the appropriate value and, possibly, add it to the options list
+    // Given already filtered encounter, look at its value and, possibly, add it to the options list
     addOption(encounter) {
         var item = encounter[this.dataKey];
         if (!this.options.includes(item))
             this.options.push(item);
     }
 
+    // Create/recreate <option> elements
+    makeOptions() {
+        // sort
+        this.options.sort();
+        // populate 'option' elements
+        this.selectNode.selectAll('option')
+            .data(this.options)
+            .join('option')
+                .text(option => option)
+                .attr('value', option => option);
+        // Restoring selected option in <select> element (assume this.selectedOpt is set correctly)
+        this.selectNode.property('selectedIndex', this.options.indexOf(this.selectedOpt));
+    }
+
     // Applies all filters to a data item (an encounter). Returns true if the item passes all the filters.
     // Suitable for invocation in Array.filter()
-    // In adition, it passes filtered encounters to each filter, so it could updated its lists of options
+    // In adition, it passes filtered encounters to each filter, so it could update its lists of options
     static filter(encounter, only_obj) {
         // Main loop - filtering
         // It proceeds to the end only if all filters let the encounter pass
@@ -83,13 +81,11 @@ class SelectFilter {
     }
 
     // Render table applying filters
-    // Second task: update options lists for each filter
+    // Second task: update options list for each filter
     static renderTableBody() {
 
-        // Reset option lists of each filter
+        // Reset options list of each filter
         SelectFilter.filterRegistry.forEach(obj => obj.options = ['']);
-
-        // This is the main part
 
         // This is how table body is created. D3 does its magic.
         var tableBody = d3.select('tbody');
@@ -101,30 +97,12 @@ class SelectFilter {
             .join('td')
                 .text(value => value);
 
-
-        // This is the secondary part: update options in filters based of the new (filtered) dataset
-
-        // First: update option lists for unset filters
+        // Based on filtered data update option lists for UNSET filters
         // (their options were already populated via SelectFilter.filter() calls above)
-        // Populating active filters requires different approach (see below)
-        SelectFilter.filterRegistry.forEach(obj => {
-            if (!obj.selectedOpt) { // the filter is unset
-                // sort options
-                obj.options.sort();
-                // populate 'option' elements
-                obj.selectNode.selectAll('option')
-                    .data(obj.options)
-                    .join('option')
-                        .text(option => option)
-                        .attr('value', option => option);
-                // The filter is unset, so... 0
-                obj.selectNode.property('selectedIndex', 0);
-            }
-        });
+        SelectFilter.filterRegistry.forEach(obj => obj.selectedOpt ? null : obj.makeOptions());
 
-        // Second: update option lists for set filters (at this moment they have only one option in the list - selected)
-        // For each set filter we have to recreate a dataset WITHOUT that filter,
-        // and then make a list of possible options for its filter field
+        // Update option lists for ACTIVE filters (at this moment they have only one option in the list - the one selected)
+        // For each active filter we have to recreate a dataset WITHOUT that filter
         var activeFilters = [];
         SelectFilter.filterRegistry.forEach(obj => obj.selectedOpt ? activeFilters.push(obj) : null);
 
@@ -134,24 +112,14 @@ class SelectFilter {
             SelectFilter.filterRegistry.splice(idx, 1);
 
             // Now apply remaining filters to the dataset, but only for the purpose of populating options of the removed filter
-            // calling SelectFilter.filter() with obj as the second argument- special case, only obj will be populated
+            // calling SelectFilter.filter() with obj as the second argument - only that obj options will be populated
             data.forEach(encounter => SelectFilter.filter(encounter, obj));
 
-            // At this point the filter options should be repopulated and needed to be transferred to the 'option' elements
-            // sorting
-            obj.options.sort();
-            // populating 'option' elements
-            obj.selectNode.selectAll('option')
-                .data(obj.options)
-                .join('option')
-                    .text(option => option)
-                    .attr('value', option => option);
-            // Restoring selected option
-            obj.selectNode.property('selectedIndex', obj.options.indexOf(obj.selectedOpt));
+            // At this point the filter options should be repopulated and have to be transferred to the 'option' elements
+            obj.makeOptions();
 
             // Put the filter back to the registry
             SelectFilter.filterRegistry.splice(idx, 0, obj);
-
         });
     }
 
@@ -166,7 +134,7 @@ class SelectFilter {
         this.selectedOpt = selected.value;
         console.log(`${this.selectId}.onChange() triggered: "${this.selectedOpt}"`);
 
-        // Render filtered data and update option lists
+        // Render filtered data and update filter options lists
         SelectFilter.renderTableBody();
 
         // Change cancel button state
@@ -183,10 +151,10 @@ class SelectFilter {
         console.log(`${this.selectId}.onClear() triggered`);
 
         // Reset select element
-        this.selectNode.property('selectedIndex', 0);
         this.selectedOpt = '';
+        this.selectNode.property('selectedIndex', 0);
 
-        // Render filtered data
+        // Render filtered data and update filter options lists
         SelectFilter.renderTableBody();
 
         // Disable clear button
@@ -202,4 +170,3 @@ metaData.forEach(field => {
 
 // Render the table for the first time with all filters cleared
 SelectFilter.renderTableBody();
-

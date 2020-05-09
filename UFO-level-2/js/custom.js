@@ -2,23 +2,37 @@
 // UT-TOR-DATA-PT-01-2020-U-C Week 14 Homework
 // (c) Boris Smirnov
 
-// jQuery in this case is much easier to use then D3
 // Set footer background to match jumbotron's
+// jQuery in this case is much easier to use then D3
 var jumboNode = $('.jumbotron')
 $('.page-footer').css('background', jumboNode.css('background-color'));
 
-// Convert dates to ISO format, find date limits, set limits to date input control
+// Cleaning data: convert dates to ISO format, replace entities in comments to real characters
 // NOTE: this is modified version, it uses non-breaking hyphen instead of regular dash to keep dates in one line.
-// This is non-breaking hyphen: '‑'. This is regular hyphen: '-'. Do not confuse.
-function toIsoishDate(d) {
+// This is non-breaking hyphen: '‑' (U+02011). This is regular hyphen: '-'. Do not confuse.
+function toISOishDate(d) {
     return  d.getUTCFullYear() +
-        '‑' + ((d.getUTCMonth() < 9 ?  '0' : '') + (d.getUTCMonth() + 1)) +
-        '‑' + ((d.getUTCDate() < 10 ?  '0' : '') + d.getUTCDate());
+        String.fromCharCode(0x2011) + ((d.getUTCMonth() < 9 ?  '0' : '') + (d.getUTCMonth() + 1)) +
+        String.fromCharCode(0x2011) + ((d.getUTCDate() < 10 ?  '0' : '') + d.getUTCDate());
 }
 
-data.forEach( encounter => {
+data.forEach(encounter => {
     var d = new Date(encounter.datetime);
-    encounter.datetime = toIsoishDate(d);
+    encounter.datetime = toISOishDate(d);
+
+    encounter.city = encounter.city.replace(' ', String.fromCharCode(0xA0)); // &nbsp;
+
+    const entityMap = [
+        { regex: /&#33/g,   subst: String.fromCharCode(33) },
+        { regex: /&#39/g,   subst: String.fromCharCode(39) },
+        { regex: /&#44/g,   subst: String.fromCharCode(44) },
+        { regex: /&amp;/g,  subst: '&'},
+        { regex: /&quot;/g, subst: '"'}
+    ];
+    
+    let s = encounter.comments;
+    entityMap.forEach(map => s = s.replace(map.regex, map.subst));
+    encounter.comments = s;
 });
 
 // Used for creating filter forms, table, filters...
@@ -33,34 +47,32 @@ var metaData = [
 ];
 
 // Create Search form
+// jQuery in this case is much easier to use then D3
 function createForm() {
-
     metaData.forEach(field => {
         if (!field.filtered)
             return; 
         
         const template = `
-                    <div class="form-group col">
-                        <label for="select${field.column}">${field.column}</label>
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <button class="btn btn-outline-warning" type="button" id="cancel${field.column}" disabled>
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <select id="select${field.column}" class="form-control">
-                            </select>
-                        </div>
+            <div class="form-group col">
+                <label for="select${field.column}">${field.column}</label>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <button class="btn btn-outline-warning" type="button" id="cancel${field.column}" disabled>
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
+                    <select id="select${field.column}" class="form-control">
+                    </select>
+                </div>
+            </div>
         `
-        $( '.form-row' ).append( $.parseHTML(template) );
+        $('.form-row').append( $.parseHTML(template) );
     });
-
 }
 
-// Creates the table
+// Create the table
 function createTable() {
-
     // Where to build ...
     var tableSpace = d3.select('#table-space');
 
