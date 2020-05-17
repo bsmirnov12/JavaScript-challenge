@@ -30,7 +30,7 @@ class SelectFilter {
         this.clearNode.on('click', this.onClear.bind(this));
     }
 
-    // Filters single data item (an encounter). Suitable for using in Array.filter()
+    // Filters single data item (an encounter). Suitable for using in Array.filter() or Array.every()
     applyFilter(encounter) {
         return this.selectedOpt ? encounter[this.dataKey] == this.selectedOpt : true;
     }
@@ -60,24 +60,20 @@ class SelectFilter {
     // Suitable for invocation in Array.filter()
     // In adition, it passes filtered encounters to each filter, so it could update its lists of options
     static filter(encounter, only_obj) {
-        // Main loop - filtering
-        // It proceeds to the end only if all filters let the encounter pass
-        for (var i = 0; i < SelectFilter.filterRegistry.length; i++) {
-            if (!SelectFilter.filterRegistry[i].applyFilter(encounter))
-                break;
-        };
+        // Apply all filters and check if the encounter passes them
+        var passed = SelectFilter.filterRegistry.every(f => f.applyFilter(encounter));
 
         // Additional loop for encounters that passed the filters
         // They are used to update option lists, so that they contain only values that are in the dataset
-        if (i == SelectFilter.filterRegistry.length) { // encounter passed all the filters
+        if (passed) {
             // now, this is special case
             if (only_obj === undefined) // populate options for all filters. Active filters will have only one (selected) option
                 SelectFilter.filterRegistry.forEach(obj => obj.addOption(encounter));
             else // populate options for this one particular ACTIVE filter (it is temporary removed from filterRegistry)
                 only_obj.addOption(encounter);
-            return true;
-        } else
-            return false;
+        }
+
+        return passed;
     }
 
     // Render table applying filters
