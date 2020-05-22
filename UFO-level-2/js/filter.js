@@ -4,18 +4,26 @@
 
 // This script uses global variables 'data' (from data.js) and 'metaData' (from custom.js)
 
+// Registry of filter objects
+// Now it works even in Edge v44
+var filterRegistry = [];
+
 // Class implements filtering
 // Its static members keep registry of filters and apply all filters to data after a filter changes its state
 // Each filter instance is responsible for one table column, handles change/clear events, provides choice options.
 class SelectFilter {
     // Registry of filter objects
-    static filterRegistry = [];
+    // Doesn't work in all browsers
+    // Experimental feature at this date (https://github.com/tc39/proposal-class-fields)
+    // Compatibility (desktop): Chrome 72, Edge 79, FF 69, Opera 60, Safari No
+    // Compatibility (android): Chrome/webview 72, FF No, Opera 51, Safari No, Samsung No
+    //static filterRegistry = [];
 
     // Construct a filter for a given column
     // Input: column name (it is used as a suffix in <select> and <button> ids), corresponding field in data entries
     constructor(idSuffix, dataKey) {
         // register this instance
-        SelectFilter.filterRegistry.push(this);
+        filterRegistry.push(this);
 
         this.selectId = '#select' + idSuffix; // id of select control
         this.selectNode = d3.select(this.selectId);
@@ -61,14 +69,14 @@ class SelectFilter {
     // In adition, it passes filtered encounters to each filter, so it could update its lists of options
     static filter(encounter, only_obj) {
         // Apply all filters and check if the encounter passes them
-        var passed = SelectFilter.filterRegistry.every(f => f.applyFilter(encounter));
+        var passed = filterRegistry.every(f => f.applyFilter(encounter));
 
         // Additional loop for encounters that passed the filters
         // They are used to update option lists, so that they contain only values that are in the dataset
         if (passed) {
             // now, this is special case
             if (only_obj === undefined) // populate options for all filters. Active filters will have only one (selected) option
-                SelectFilter.filterRegistry.forEach(obj => obj.addOption(encounter));
+                filterRegistry.forEach(obj => obj.addOption(encounter));
             else // populate options for this one particular ACTIVE filter (it is temporary removed from filterRegistry)
                 only_obj.addOption(encounter);
         }
@@ -81,7 +89,7 @@ class SelectFilter {
     static renderTableBody() {
 
         // Reset options list of each filter
-        SelectFilter.filterRegistry.forEach(obj => obj.options = ['']);
+        filterRegistry.forEach(obj => obj.options = ['']);
 
         // This is how table body is created. D3 does its magic.
         var tableBody = d3.select('tbody');
@@ -95,17 +103,17 @@ class SelectFilter {
 
         // Based on filtered data update option lists for UNSET filters
         // (their options were already populated via SelectFilter.filter() calls above)
-        SelectFilter.filterRegistry.forEach(obj => obj.selectedOpt ? null : obj.makeOptions());
+        filterRegistry.forEach(obj => obj.selectedOpt ? null : obj.makeOptions());
 
         // Update option lists for ACTIVE filters (at this moment they have only one option in the list - the one selected)
         // For each active filter we have to recreate a dataset WITHOUT that filter
         var activeFilters = [];
-        SelectFilter.filterRegistry.forEach(obj => obj.selectedOpt ? activeFilters.push(obj) : null);
+        filterRegistry.forEach(obj => obj.selectedOpt ? activeFilters.push(obj) : null);
 
         activeFilters.forEach(obj => {
             // temporary remove the filter from the registry
-            let idx = SelectFilter.filterRegistry.indexOf(obj);
-            SelectFilter.filterRegistry.splice(idx, 1);
+            let idx = filterRegistry.indexOf(obj);
+            filterRegistry.splice(idx, 1);
 
             // Now apply remaining filters to the dataset, but only for the purpose of populating options of the removed filter
             // calling SelectFilter.filter() with obj as the second argument - only that obj options will be populated
@@ -115,7 +123,7 @@ class SelectFilter {
             obj.makeOptions();
 
             // Put the filter back to the registry
-            SelectFilter.filterRegistry.splice(idx, 0, obj);
+            filterRegistry.splice(idx, 0, obj);
         });
     }
 
